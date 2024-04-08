@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-100">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>ABC Finance - Đầu tư sinh lời</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="../vendor/bootstrap/css/bootstrap.min.css" type="text/css">
+    <!-- Font awesome -->
+    <link rel="stylesheet" href="../vendor/font-awesome/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom css - Các file css do chúng ta tự viết -->
+    <link rel="stylesheet" href="../assets/css/app.css" type="text/css">
+</head>
+
+<body>
+    <!-- header -->
+    <nav class="navbar navbar-expand-md navbar-dark sticky-top bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="https://nentang.vn">ABC Finance</a>
+            <div class="navbar-collapse collapse" id="navbarCollapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Trang chủ <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="naptien.html">Nạp tiền</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="ruttien.html">Rút tiền</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="thuhoivon.html">Thu hồi vốn</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contact.html">Liên hệ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="mail.html">Hộp thư</a>
+                    </li>
+                </ul>
+            </div>
+            <ul class="navbar-nav px-3">
+                <li class="nav-item text-nowrap">
+                    <!-- Nếu chưa đăng nhập thì hiển thị nút Đăng nhập -->
+                    <a class="nav-link" href="../index_begin.html">Đăng xuất</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <!-- end header -->
+
+    <main role="main">
+        <!-- Block content - Đục lỗ trên giao diện bố cục chung, đặt tên là `content` -->
+        <div class="container mt-4">
+            <form class="needs-validation" name="frmthanhtoan" method="post"
+                action="#">
+                <input type="hidden" name="kh_tendangnhap" value="dnpcuong">
+
+                <div class="py-5 text-center">
+                    <i class="fa fa-credit-card fa-4x" aria-hidden="true"></i>
+                    <h2>Rút tiền</h2>
+                    <p class="lead">Vui lòng kiểm tra thông tin Khách hàng, thông tin Thanh hàng kỹ trước khi Rút tiền.</p>
+                </div>
+
+                <div class="row">
+                    
+
+                    </div>
+                    <div class="col-md-8 order-md-1">
+                        <h4 class="mb-3">Thông tin khách hàng</h4>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label for="kh_ten">Username</label>
+                                <input type="text" class="form-control" name="username" id="username">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="kh_ten">Password</label>
+                                <input type="text" class="form-control" name="password" id="password">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="kh_dienthoai">Điện thoại</label>
+                                <input type="text" class="form-control" name="kh_dienthoai" id="kh_dienthoai"
+                                    >
+                            </div>
+                            <div class="col-md-12">
+                                <label for="kh_email">Email</label>
+                                <input type="text" class="form-control" name="kh_email" id="kh_email">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="kh_cmnd">CMND</label>
+                                <input type="text" class="form-control" name="kh_cmnd" id="kh_cmnd">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="kh_cmnd">Số tiền muốn rút</label>
+                                <input type="text" class="form-control" name="value" id="value">
+                            </div>
+                        </div>
+                        <h4></h4>
+                        <h4 class="mb-3">Hình thức nhận tiền</h4>
+
+                        <div class="d-block my-3">
+                            <div class="custom-control custom-radio" style="margin-bottom: 20px;">
+                                <input id="httt-1" name="httt_ma" type="radio" class="custom-control-input" required="" value="1">
+                                <label class="custom-control-label" for="httt-1"><b>VN Pay</b></label>
+                                <ul class="list-group mb-3">
+                                    <li class="list-group-item d-flex justify-content-between lh-condensed">
+                                        <div class="col-md-12">
+                                            <label for="kh_img">Ảnh QR code</label>
+                                            <input type="file" class="form-control-file" name="kh_qr" id="kh_qr">
+                                        </div>
+                                        
+                                    </li>
+                                    
+                                </ul>
+                            </div>
+                            
+                            <div class="custom-control custom-radio">
+                                <input id="httt-2" name="httt_ma" type="radio" class="custom-control-input" required=""
+                                    value="2">
+                                <label 
+                                    class="custom-control-label" for="httt-2"><b>Chuyển khoản Ngân hàng</b>
+                                    <div class="col-md-12">
+                                        <label for="kh_ten">Chủ tài khoản</label>
+                                        <input type="text" class="form-control" name="nguoi_nhan" id="nguoi_nhan">
+                                        <label for="kh_ten">Tên ngân hàng</label>
+                                        <input type="text" class="form-control" name="bank_name" id="bank_name">
+                                        <label for="kh_ten">Số tài khoản</label>
+                                        <input type="text" class="form-control" name="bank_account" id="bank_account">
+                                    </div>
+                                </label>
+                            </div>
+                            <!-- <div class="custom-control custom-radio">
+                                <input id="httt-3" name="httt_ma" type="radio" class="custom-control-input" required=""
+                                    value="3">
+                                <label class="custom-control-label" for="httt-3">Ship COD</label>
+                            </div> -->
+                        </div>
+                        <hr class="mb-4">
+                        <button class="btn btn-primary btn-lg btn-block" type="submit" name="btnDatHang">Rút tiền</button>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+        <!-- End block content -->
+    </main>
+
+    <!-- footer -->
+    <footer class="footer mt-auto py-3">
+        <div class="container">
+            <span>Mọi thông tin xin liên hệ <a href="https://nentang.vn">ABC Finance</a> - <script>document.write(new Date().getFullYear());</script>.</span>
+            <span class="text-muted">SĐT: 0123 456 789</span>
+
+            <p class="float-right">
+                <a href="#">Về đầu trang</a>
+            </p>
+        </div>
+    </footer>
+    <!-- end footer -->
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="../vendor/jquery/jquery.min.js"></script>
+    <script src="../vendor/popperjs/popper.min.js"></script>
+    <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Custom script - Các file js do mình tự viết -->
+    <script src="../assets/js/app.js"></script>
+
+</body>
+
+</html>
