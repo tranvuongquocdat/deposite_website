@@ -1,30 +1,19 @@
 function signup(e) {
-    e.preventDefault(); // Ngăn chặn hành vi mặc định của form (tức là, ngăn chặn việc gửi form)
+    e.preventDefault();
 
-    const formData = {
-    // Lấy giá trị từ input
-        username : document.getElementsByName('kh_tendangnhap')[0].value,
-        password : document.getElementsByName('kh_matkhau')[0].value,
-        name : document.getElementsByName('kh_ten')[0].value,
-        gender : document.getElementsByName('kh_gioitinh')[0].value,
-        address : document.getElementsByName('kh_diachi')[0].value,
-        phone : document.getElementsByName('kh_dienthoai')[0].value,
-        email : document.getElementsByName('kh_email')[0].value,
-        date : document.getElementsByName('kh_ngaysinh')[0].value,
-        month : document.getElementsByName('kh_thangsinh')[0].value,
-        year : document.getElementsByName('kh_namsinh')[0].value,
-        cmnd : document.getElementsByName('kh_cmnd')[0].value
-    };
+    const formElement = document.getElementById('frmdangky');
+    const formData = new FormData(formElement);
+    
     fetch('http://localhost:3000/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData),
+        method: 'POST',
+        body: formData, // Không cần thiết đặt header 'Content-Type' vì FormData tự động thiết lập
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Thông tin đã được sử dụng');
+                return response.json().then(errData => {
+                    // Đây có thể là một Error object hoặc bất kỳ cấu trúc dữ liệu nào bạn chọn
+                    throw new Error(errData.message || 'Có lỗi xảy ra');
+                });
             }
             return response.json();
         })
@@ -32,7 +21,7 @@ function signup(e) {
             if(data.error) {
                 throw new Error(data.error); // Nếu có lỗi từ server, ném lỗi này để catch bắt được
             }
-            alert("Đăng ký thành công");
+            alert("Đăng ký thành công, đăng nhập ngay!!!");
             window.location.href = '../pages/login.html';
         })
         .catch((error) => {

@@ -12,6 +12,14 @@ const bcrypt = require('bcrypt');
 const cors = require('cors'); // Đảm bảo đã cài đặt package cors với npm install cors
 app.use(cors());
 
+const session = require('express-session');
+
+app.use(session({
+    secret: 'datdat202', // Sử dụng một chuỗi bí mật phức tạp
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: true }
+}));
 
 app.use(bodyParser.json());
 app.use('/uploads', express.static('uploads')); // Serve static files
@@ -27,8 +35,25 @@ const storage = multer.diskStorage({
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 1000000 }
+    limits: { fileSize: 20000000 }
 }).single('kh_img');
+
+const storageInfoImages = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, 'info_images/') // Change destination folder here
+    },
+    filename: function(req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+    }
+});
+
+const upload_cmnd = multer({
+    storage: storageInfoImages, // Use the new storage configuration
+    limits: { fileSize: 20000000 }
+}).fields([
+    { name: 'cmnd_front', maxCount: 1 },
+    { name: 'cmnd_after', maxCount: 1 }
+]);
 
 
 const con = mysql.createConnection({
@@ -45,53 +70,63 @@ con.connect(err => {
 });
 
 app.post('/register', (req, res) => {
-    const { username, password, name, gender, address, phone, email, date, month, year, cmnd } = req.body;
-
-    // Kiểm tra xem username hoặc email đã tồn tại chưa
-    const checkSql = "SELECT * FROM user WHERE user_name = ? OR email = ? OR phone = ?";
-    con.query(checkSql, [username, email, phone], (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({
-                message: "Error checking user existence",
-                error: err.message
-            });
+    upload_cmnd(req, res, function (uploadErr) {
+        if (uploadErr instanceof multer.MulterError) {
+            return res.status(500).json({ message: "Multer uploading error", error: uploadErr.message });
+        } else if (uploadErr) {
+            return res.status(500).json({ message: "General uploading error", error: uploadErr.message });
         }
-        if (result.length > 0) {
-            // Nếu tìm thấy ít nhất một bản ghi trùng khớp, thông báo lỗi.
-            return res.status(400).json({
-                message: "Username or email already exists"
-            });
-        } else {
-            // Băm mật khẩu trước khi lưu vào cơ sở dữ liệu
-            bcrypt.hash(password, 10, (err, hash) => {
-                if (err) {
-                    console.error(err);
-                    return res.status(500).json({
-                        message: "Error hashing password",
-                        error: err.message
-                    });
-                }
 
-                // Nếu không có lỗi, tiếp tục thực hiện việc đăng ký
-                const sql = "INSERT INTO user (user_name, pass, name, gender, address, phone, email, date, month, year, cmnd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                const values = [username, hash, name, gender, address, phone, email, date, month, year, cmnd];
-                con.query(sql, values, (err, result) => {
+        const { username, password, name, gender, address, phone, email, date, month, year, cmnd, kh_ma_moi} = req.body;
+        const cmndFrontUrl = req.files['cmnd_front'] ? req.files['cmnd_front'][0].path.replace(/\\/g, '/') : null;
+        const cmndAfterUrl = req.files['cmnd_after'] ? req.files['cmnd_after'][0].path.replace(/\\/g, '/') : null;
+
+        // Kiểm tra xem username hoặc email đã tồn tại chưa
+        const checkSql = "SELECT * FROM user WHERE user_name = ? OR email = ? OR phone = ?";
+        con.query(checkSql, [username, email, phone], (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({
+                    message: "Error checking user existence",
+                    error: err.message
+                });
+            }
+            if (result.length > 0) {
+                // Nếu tìm thấy ít nhất một bản ghi trùng khớp, thông báo lỗi.
+                return res.status(400).json({
+                    message: "Username or email already exists"
+                });
+            } else {
+                // Băm mật khẩu trước khi lưu vào cơ sở dữ liệu
+                bcrypt.hash(password, 10, (err, hash) => {
                     if (err) {
                         console.error(err);
                         return res.status(500).json({
-                            message: "Error during registration",
+                            message: "Error hashing password",
                             error: err.message
                         });
                     }
-                    console.log(result);
-                    res.json({
-                        message: "Registered successfully",
-                        result
+
+                    // Nếu không có lỗi, tiếp tục thực hiện việc đăng ký
+                    const sql = "INSERT INTO user (user_name, pass, name, gender, address, phone, email, date, month, year, cmnd, front_cmnd_url, after_cmnd_url, ma_moi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    const values = [username, hash, name, gender, address, phone, email, date, month, year, cmnd, cmndFrontUrl, cmndAfterUrl, kh_ma_moi];
+                    con.query(sql, values, (err, result) => {
+                        if (err) {
+                            console.error(err);
+                            return res.status(500).json({
+                                message: "Error during registration",
+                                error: err.message
+                            });
+                        }
+                        console.log(result);
+                        res.json({
+                            message: "Registered successfully",
+                            result
+                        });
                     });
                 });
-            });
-        }
+            }
+        });
     });
 });
 
@@ -114,7 +149,7 @@ app.post('/login', (req, res) => {
     con.query(sql, [login, login, login], (err, result) => {
         if (err) {
             console.error(err);
-            return res.status(500).json({ message: "Error during login", error: err.message });
+            return res.status(500).json({ message: "Tài khoản không đúng", error: err.message });
         }
 
         if (result.length > 0) {
@@ -124,13 +159,14 @@ app.post('/login', (req, res) => {
             bcrypt.compare(password, user.pass, function(err, isMatch) {
                 if (err) {
                     console.error(err);
-                    return res.status(500).json({ message: "Error during password comparison", error: err.message });
+                    return res.status(500).json({ message: "Sai mật khẩu", error: err.message });
                 }
 
                 if (isMatch) {
                     // Mật khẩu đúng, trả về thông tin người dùng (trừ mật khẩu)
                     delete user.pass; // Xóa mật khẩu ra khỏi đối tượng trả về
-                    res.json({ message: "Login successful", user });
+                    req.session.username = user.user_name;
+                    res.json({ message: "Đăng nhập thành công", user});
                 } else {
                     res.status(401).json({ message: "Tài khoản hoặc mật khẩu không đúng" });
                 }
@@ -219,6 +255,29 @@ app.get('/balance', (req, res) => {
             const { total_deposit, total_withdraw } = results[0];
             const balance = total_deposit - total_withdraw;
             res.json({ balance });
+        } else {
+            res.status(404).json({ message: "User not found" });
+        }
+    });
+});
+
+app.get('/user-info', (req, res) => {
+    const username = req.query.username; // Lấy username từ query string
+
+    if (!username) {
+        return res.status(400).json({ message: 'Username is required' });
+    }
+
+    const sql = "SELECT user_name, name, gender, phone, email, address, front_cmnd_url, after_cmnd_url FROM user WHERE user_name = ?";
+    con.query(sql, [username], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Error fetching user information", error: err.message });
+        }
+        if (result.length > 0) {
+            const user = result[0];
+            delete user.password; // Giả định có trường password
+            res.json(user);
         } else {
             res.status(404).json({ message: "User not found" });
         }

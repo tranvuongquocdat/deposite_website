@@ -24,8 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Xử lý dựa trên mã trạng thái của phản hồi.
             if (response.ok) {
-                alert("Đăng nhập thành công");
-                window.location.href = '../index.html';
+                localStorage.setItem('userInfo', JSON.stringify(data.user));
+                localStorage.setItem('username', data.user.user_name); // Lưu username riêng
+                alert(data.message);
+                window.location.href = '../index_login.html';
             } else {
                 // Hiển thị thông điệp lỗi từ server.
                 throw new Error(data.message || 'Có lỗi xảy ra khi đăng nhập.');

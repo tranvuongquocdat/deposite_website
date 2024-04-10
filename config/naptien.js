@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 alert("Nạp tiền thành công, quay trở về trang chủ!");
-                window.location.href = '../index.html'; // Redirect or handle the UI update accordingly
+                window.location.href = '../index_login.html'; // Redirect or handle the UI update accordingly
             } else {
                 throw new Error(data.message || 'Có lỗi xảy ra khi nạp tiền.');
             }

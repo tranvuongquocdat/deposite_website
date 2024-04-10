@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-100">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="../vendor/bootstrap/css/bootstrap.min.css" type="text/css">
+    <!-- Font awesome -->
+    <link rel="stylesheet" href="../vendor/font-awesome/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom css - Các file css do chúng ta tự viết -->
+    <link rel="stylesheet" href="../assets/css/app.css" type="text/css">
+</head>
+
+<body>
+    <!-- header -->
+    <nav class="navbar navbar-expand-md navbar-dark sticky-top bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="https://nentang.vn">ABC Finance</a>
+            <div class="navbar-collapse collapse" id="navbarCollapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index_login.html">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="naptien.html">Nạp tiền</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="ruttien.html">Rút tiền</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="thuhoivon.html">Thu hồi vốn</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contact.html">Liên hệ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="mail.html">Hộp thư</a>
+                    </li>
+                </ul>
+            </div>
+            <ul class="navbar-nav px-3">
+                <li class="nav-item text-nowrap">
+                    <a class="nav-link" href="user_info.html">Thông tin tài khoản</a>
+                </li>
+                <li class="nav-item text-nowrap">
+                    <!-- Nếu chưa đăng nhập thì hiển thị nút Đăng nhập -->
+                    <a class="nav-link" href="../index.html">Đăng xuất</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <!-- end header -->
+
+    <main role="main">
+        <!-- Block content - Đục lỗ trên giao diện bố cục chung, đặt tên là `content` -->
+        <form name="frmdangnhap" id="frmdangnhap" method="post" action="#">
+            <div class="container mt-4">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card-group">
+                            <div class="card p-4">
+                                <div class="card-body">
+                                    <h1>Thông tin tài khoản</h1>
+                                    <p></p>
+                                    <div class="col-md-12">
+                                        <label>Tên tài khoản</label>
+                                        <div id="username" class="form-control" readonly></div>
+                                    </div>
+                                    <p></p>
+                                    <div class="col-md-12">
+                                        <label>Họ và tên</label>
+                                        <div id="name" class="form-control" readonly></div>
+                                    </div>
+                                    <p></p>
+                                    <div class="col-md-12">
+                                        <label>Giới tính</label>
+                                        <div id="gender" class="form-control" readonly></div>
+                                    </div>
+                                    <p></p>
+                                    <div class="col-md-12">
+                                        <label>Số điện thoại</label>
+                                        <div id="phone" class="form-control" readonly></div>
+                                    </div>
+                                    <p></p>
+                                    <div class="col-md-12">
+                                        <label>Email</label>
+                                        <div id="email" class="form-control" readonly></div>
+                                    </div>
+                                    <p></p>
+                                    <div class="col-md-12">
+                                        <label>Địa chỉ</label>
+                                        <div id="address" class="form-control" readonly></div>
+                                    </div>
+                                    <p></p>
+                                    <div class="col-md-12">
+                                        <label>Số dư</label>
+                                        <div id="sodu" class="form-control" readonly>15.000.000</div>
+                                    </div>
+                                    <p></p>
+                                    <div class="col-md-12">
+                                        <label for="front_cmnd" style="font-size: 20px;"><b>Ảnh CMND mặt trước</b></label>
+                                        <img id="front_cmnd" style="height: 370px; width: 600px;" alt="Ảnh CMND mặt trước" readonly />
+                                    </div>
+                                    <p></p>
+                                    <div class="col-md-12">
+                                        <label for="after_cmnd" style="font-size: 20px;"><b>Ảnh CMND mặt sau</b></label>
+                                        <img id="after_cmnd" style="height: 370px; width: 600px;" alt="Ảnh CMND mặt sau" readonly />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <script src = "../config/user_info.js"></script>
+        <!-- End block content -->
+    </main>
+
+    <!-- footer -->
+    <footer class="footer mt-auto py-3">
+        <div class="container">
+            <span>Mọi thông tin xin liên hệ <a href="https://nentang.vn">ABC Finance</a> - <script>document.write(new Date().getFullYear());</script>.</span>
+            <span class="text-muted">SĐT: 0123 456 789</span>
+
+            <p class="float-right">
+                <a href="#">Về đầu trang</a>
+            </p>
+        </div>
+    </footer>
+    <!-- end footer -->
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="../vendor/jquery/jquery.min.js"></script>
+    <script src="../vendor/popperjs/popper.min.js"></script>
+    <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Custom script - Các file js do mình tự viết -->
+    <script src="../assets/js/app.js"></script>
+
+</body>
+
+</html>
