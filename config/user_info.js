@@ -25,6 +25,8 @@ function displayUserInfo() {
             // Populate the data in your table or wherever you're displaying it
             document.getElementById('username').textContent = user.user_name;
             document.getElementById('name').textContent = user.name;
+            const formattedBalance = user.balance.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
+            document.getElementById('balance').textContent = `${formattedBalance}`;
             document.getElementById('gender').textContent = user.gender;
             document.getElementById('phone').textContent = user.phone;
             document.getElementById('email').textContent = user.email;

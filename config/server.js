@@ -3,16 +3,23 @@ const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const multer = require('multer');
 const path = require('path');
-
 const app = express();
+const bcrypt = require('bcrypt');
+const cors = require('cors'); // Đảm bảo đã cài đặt package cors với npm install cors
+const session = require('express-session');
+
+const host = '192.168.1.12';
 const port = 3000;
 
-const bcrypt = require('bcrypt');
+const con = mysql.createConnection({
+    host: "192.168.1.12",
+    port: 3636,
+    user: "dat",
+    password: "1",
+    database: "deposite_sql"
+});
 
-const cors = require('cors'); // Đảm bảo đã cài đặt package cors với npm install cors
 app.use(cors());
-
-const session = require('express-session');
 
 app.use(session({
     secret: 'datdat202', // Sử dụng một chuỗi bí mật phức tạp
@@ -54,15 +61,6 @@ const upload_cmnd = multer({
     { name: 'cmnd_front', maxCount: 1 },
     { name: 'cmnd_after', maxCount: 1 }
 ]);
-
-
-const con = mysql.createConnection({
-    host: "localhost",
-    port: 3636,
-    user: "root",
-    password: "",
-    database: "deposite_sql"
-});
 
 con.connect(err => {
     if (err) throw err;
@@ -219,7 +217,7 @@ app.post('/deposit', (req, res) => {
                         res.json({
                             message: "Deposit successful",
                             transactionId: insertResult.insertId,
-                            imageUrl: `http://localhost:${port}/uploads/${imageUrl}` ,// Construct the full URL to the uploaded image
+                            imageUrl: `http://${host}:${port}/uploads/${imageUrl}` ,// Construct the full URL to the uploaded image
                             value: value
                         });
                     });
@@ -262,29 +260,148 @@ app.get('/balance', (req, res) => {
 });
 
 app.get('/user-info', (req, res) => {
-    const username = req.query.username; // Lấy username từ query string
-
+    const username = req.query.username;
     if (!username) {
         return res.status(400).json({ message: 'Username is required' });
     }
 
-    const sql = "SELECT user_name, name, gender, phone, email, address, front_cmnd_url, after_cmnd_url FROM user WHERE user_name = ?";
-    con.query(sql, [username], (err, result) => {
+    const balanceSql = `
+        SELECT 
+            (SELECT COALESCE(SUM(value), 0) FROM money WHERE user_name = ?) AS total_deposit,
+            (SELECT COALESCE(SUM(value), 0) FROM ruttien WHERE user_name = ?) AS total_withdraw
+    `;
+
+    con.query(balanceSql, [username, username], (err, balanceResults) => {
         if (err) {
             console.error(err);
-            return res.status(500).json({ message: "Error fetching user information", error: err.message });
+            return res.status(500).json({ message: "Error fetching balance", error: err.message });
         }
-        if (result.length > 0) {
-            const user = result[0];
-            delete user.password; // Giả định có trường password
-            res.json(user);
-        } else {
-            res.status(404).json({ message: "User not found" });
-        }
+
+        const userInfoSql = "SELECT user_name, name, gender, phone, email, address, front_cmnd_url, after_cmnd_url FROM user WHERE user_name = ?";
+        con.query(userInfoSql, [username], (err, userInfoResults) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ message: "Error fetching user information", error: err.message });
+            }
+
+            if (userInfoResults.length > 0) {
+                const user = userInfoResults[0];
+                const { total_deposit, total_withdraw } = balanceResults[0] || { total_deposit: 0, total_withdraw: 0 };
+                const balance = total_deposit - total_withdraw;
+                // Thêm thông tin số dư vào đối tượng người dùng
+                user.balance = balance;
+
+                res.json(user);
+            } else {
+                res.status(404).json({ message: "User not found" });
+            }
+        });
     });
 });
 
+app.post('/withdraw', (req, res) => {
+    const { username, password, value, kh_lydo, httt_ma, qr_url, nguoi_nhan, bank_name, bank_account } = req.body;
+
+    // Xác minh người dùng và mật khẩu
+    con.query('SELECT pass FROM user WHERE user_name = ?', [username], (err, userResults) => {
+        if (err) {
+            return res.status(500).json({ message: "Lỗi server", error: err.message });
+        }
+        if (userResults.length === 0) {
+            return res.status(404).json({ message: "Tên người dùng không tồn tại" });
+        }
+
+        const user = userResults[0];
+        bcrypt.compare(password, user.pass, function(err, isMatch) {
+            if (err) {
+                return res.status(500).json({ message: "Lỗi xác thực", error: err.message });
+            }
+            if (!isMatch) {
+                return res.status(401).json({ message: "Sai mật khẩu" });
+            }
+
+            // Tính số dư hiện có
+            con.query('SELECT (SELECT COALESCE(SUM(value), 0) FROM money WHERE user_name = ?) - (SELECT COALESCE(SUM(value), 0) FROM ruttien WHERE user_name = ?) AS balance', [username, username], (err, balanceResults) => {
+                if (err) {
+                    return res.status(500).json({ message: "Lỗi khi lấy số dư", error: err.message });
+                }
+
+                const currentBalance = balanceResults[0].balance;
+                if (value > currentBalance) {
+                    return res.status(400).json({ message: "Số dư không đủ để rút số tiền này" });
+                }
+
+                // Thực hiện giao dịch rút tiền
+                con.query('INSERT INTO ruttien (user_name, value, kh_lydo, httt_ma, qr_url, nguoi_nhan, bank_name, bank_account) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+                    [username, value, kh_lydo, httt_ma, qr_url || null, nguoi_nhan || null, bank_name || null, bank_account || null], (err, insertResult) => {
+                        if (err) {
+                            return res.status(500).json({ message: "Lỗi khi thực hiện giao dịch rút tiền", error: err.message });
+                        }
+
+                        // Giao dịch rút tiền thành công
+                        res.json({ 
+                            message: "Rút tiền thành công", 
+                            transactionId: insertResult.insertId, 
+                            balanceAfterWithdraw: currentBalance - value 
+                        });
+                    }
+                );
+            });
+        });
+    });
+});
+
+app.post('/withdraw-all', (req, res) => {
+    const { username, password } = req.body;
+
+    // Đầu tiên xác minh người dùng dựa trên username và password
+    con.query('SELECT pass FROM user WHERE user_name = ?', [username], (err, userResults) => {
+        if (err) {
+            return res.status(500).json({ message: "Lỗi server", error: err.message });
+        }
+        if (userResults.length === 0) {
+            return res.status(404).json({ message: "Người dùng không tồn tại" });
+        }
+
+        const user = userResults[0];
+        bcrypt.compare(password, user.pass, function(err, isMatch) {
+            if (err || !isMatch) {
+                return res.status(401).json({ message: "Sai mật khẩu" });
+            }
+
+            // Tính số dư hiện có bằng cách lấy tổng value từ bảng 'money' và trừ đi tổng value từ bảng 'ruttien'
+            con.query('SELECT (SELECT COALESCE(SUM(value), 0) FROM money WHERE user_name = ?) - (SELECT COALESCE(SUM(value), 0) FROM ruttien WHERE user_name = ?) AS balance', [username, username], (err, results) => {
+                if (err) {
+                    return res.status(500).json({ message: "Lỗi khi lấy số dư", error: err.message });
+                }
+
+                const currentBalance = results[0].balance;
+                if (currentBalance <= 0) {
+                    return res.status(400).json({ message: "Không có đủ số dư để rút" });
+                }
+
+                // Thực hiện giao dịch rút tiền
+                con.query('INSERT INTO ruttien (user_name, value, kh_lydo, httt_ma, qr_url, nguoi_nhan, bank_name, bank_account) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+                    [username, currentBalance, 'Thu hồi vốn', req.body.httt_ma, req.body.qr_url || null, req.body.nguoi_nhan || null, req.body.bank_name || null, req.body.bank_account || null], (err, insertResult) => {
+                        if (err) {
+                            return res.status(500).json({ message: "Lỗi khi thực hiện giao dịch rút tiền", error: err.message });
+                        }
+
+                        // Giao dịch rút tiền thành công
+                        res.json({ 
+                            message: "Thu hồi vốn thành công", 
+                            transactionId: insertResult.insertId, 
+                            balanceAfterWithdraw: 0 
+                        });
+                    }
+                );
+            });
+        });
+    });
+});
+
+
 // ... any other routes you have
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+    console.log(`Server running at http://${host}:${port}`);
 });
