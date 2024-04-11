@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(this);
 
         try {
-            const response = await fetch('http://localhost:3000/deposit', {
+            const response = await fetch('http://84.247.148.141:3000/deposit', {
                 method: 'POST',
                 body: formData, // FormData will be sent as 'multipart/form-data'
             });

@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch(`http://localhost:3000/balance?username=${encodeURIComponent(username)}`);
+            const response = await fetch(`http://84.247.148.141:3000/balance?username=${encodeURIComponent(username)}`);
             const data = await response.json();
 
             if (response.ok) {

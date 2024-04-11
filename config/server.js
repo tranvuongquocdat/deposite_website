@@ -8,14 +8,13 @@ const bcrypt = require('bcrypt');
 const cors = require('cors'); // Đảm bảo đã cài đặt package cors với npm install cors
 const session = require('express-session');
 
-const host = '192.168.1.12';
+const host = '84.247.148.141';
 const port = 3000;
 
 const con = mysql.createConnection({
-    host: "192.168.1.12",
-    port: 3636,
-    user: "dat",
-    password: "1",
+    host: "84.247.148.141",
+    port: 3306,
+    user: "root",
     database: "deposite_sql"
 });
 

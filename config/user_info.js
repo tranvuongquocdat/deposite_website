@@ -10,7 +10,7 @@ function displayUserInfo() {
         return;
     }
 
-    fetch(`http://localhost:3000/user-info?username=${encodeURIComponent(username)}`, {
+    fetch(`http://84.247.148.141:3000/user-info?username=${encodeURIComponent(username)}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         // Không cần credentials: 'include' vì không sử dụng session trong trường hợp này

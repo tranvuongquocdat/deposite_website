@@ -4,7 +4,7 @@ function signup(e) {
     const formElement = document.getElementById('frmdangky');
     const formData = new FormData(formElement);
     
-    fetch('http://localhost:3000/register', {
+    fetch('http://84.247.148.141:3000/register', {
         method: 'POST',
         body: formData, // Không cần thiết đặt header 'Content-Type' vì FormData tự động thiết lập
         })
