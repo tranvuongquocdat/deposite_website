@@ -54,6 +54,18 @@ const storageInfoImages = multer.diskStorage({
     }
 });
 
+const moneyStorage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, 'money/');  // Thư mục lưu trữ
+    },
+    filename: function(req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const uploadMoney = multer({ storage: moneyStorage }).single('kh_qr');
+
 const upload_cmnd = multer({
     storage: storageInfoImages, // Use the new storage configuration
     limits: { fileSize: 20000000 }
@@ -269,7 +281,7 @@ app.post('/contact', contact.none(), (req, res) => {
 });
 
 app.post('/withdraw', (req, res) => {
-    const { username, password, value } = req.body;
+    const { username, password, value, kh_lydo } = req.body;
 
     con.query('SELECT pass FROM user WHERE user_name = ?', [username], (err, userResults) => {
         if (err) {
@@ -296,13 +308,13 @@ app.post('/withdraw', (req, res) => {
                 }
 
                 // Thực hiện giao dịch rút tiền
-                con.query('INSERT INTO ruttien (user_name, value) VALUES (?, ?)', [username, value], (err, insertResult) => {
+                con.query('INSERT INTO ruttien (user_name, value, kh_lydo) VALUES (?, ?, ?)', [username, value, kh_lydo], (err, insertResult) => {
                     if (err) {
                         return res.status(500).json({ message: "Lỗi khi thực hiện giao dịch rút tiền", error: err.message });
                     }
 
                     res.json({ 
-                        message: "Rút tiền thành công", 
+                        message: "Rút tiền thành công, giao dịch đang được xử lý!!!", 
                         transactionId: insertResult.insertId, 
                         balanceAfterWithdraw: currentBalance - value 
                     });

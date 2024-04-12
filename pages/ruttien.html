@@ -62,9 +62,7 @@
     <main role="main">
         <!-- Block content - Đục lỗ trên giao diện bố cục chung, đặt tên là `content` -->
         <div class="container mt-4">
-            <form class="needs-validation" name="withdrawForm" method="post"
-                action="#">
-                <input type="hidden" name="kh_tendangnhap" value="dnpcuong">
+            <form class="needs-validation" id="withdrawForm" method="post" enctype="multipart/form-data"  action="#">
 
                 <div class="py-5 text-center">
                     <i class="fa fa-credit-card fa-4x" aria-hidden="true"></i>
@@ -102,18 +100,19 @@
                                 <input type="text" class="form-control" name="kh_cmnd" id="kh_cmnd">
                             </div>
                             <div class="col-md-12">
-                                <label for="kh_cmnd">Số dư khả dụng</label>
+                                <label for="available_balance">Số dư khả dụng</label>
                                 <input type="text" class="form-control" name="available_balance" id="available_balance" readonly>
                             </div>
                             <div class="col-md-12">
-                                <label for="kh_cmnd">Số tiền muốn rút</label>
+                                <label for="value">Số tiền muốn rút (VNĐ)</label>
                                 <input type="text" class="form-control" name="value" id="value">
                             </div>
                         </div>
                         <h4></h4>
                         <h4 class="mb-3">Hình thức nhận tiền</h4>
 
-                        <div class="d-block my-3">
+                        <!-- <div class="d-block my-3">
+
                             <div class="custom-control custom-radio" style="margin-bottom: 20px;">
                                 <input id="httt-1" name="httt_ma" type="radio" class="custom-control-input" required="" value="1">
                                 <label class="custom-control-label" for="httt-1"><b>VN Pay</b></label>
@@ -126,7 +125,7 @@
                                         
                                     </li>
                                 </ul>
-                            </div>
+                            </div> -->
                             
                             <div class="custom-control custom-radio">
                                 <input id="httt-2" name="httt_ma" type="radio" class="custom-control-input" required=""
