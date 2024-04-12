@@ -62,7 +62,7 @@
     <main role="main">
         <!-- Block content - Đục lỗ trên giao diện bố cục chung, đặt tên là `content` -->
         <div class="container mt-4">
-            <form class="needs-validation" name="frmthanhtoan" method="post"
+            <form class="needs-validation" name="withdrawForm" method="post"
                 action="#">
                 <input type="hidden" name="kh_tendangnhap" value="dnpcuong">
 
@@ -102,6 +102,10 @@
                                 <input type="text" class="form-control" name="kh_cmnd" id="kh_cmnd">
                             </div>
                             <div class="col-md-12">
+                                <label for="kh_cmnd">Số dư khả dụng</label>
+                                <input type="text" class="form-control" name="available_balance" id="available_balance" readonly>
+                            </div>
+                            <div class="col-md-12">
                                 <label for="kh_cmnd">Số tiền muốn rút</label>
                                 <input type="text" class="form-control" name="value" id="value">
                             </div>
@@ -131,11 +135,11 @@
                                     class="custom-control-label" for="httt-2"><b>Chuyển khoản Ngân hàng</b>
                                     <div class="col-md-12">
                                         <label for="kh_ten">Chủ tài khoản</label>
-                                        <input type="text" class="form-control" name="nguoi_nhan" id="nguoi_nhan">
+                                        <input type="text" class="form-control" name="nguoi_nhan" id="nguoi_nhan" readonly>
                                         <label for="kh_ten">Tên ngân hàng</label>
-                                        <input type="text" class="form-control" name="bank_name" id="bank_name">
+                                        <input type="text" class="form-control" name="bank_name" id="bank_name" readonly>
                                         <label for="kh_ten">Số tài khoản</label>
-                                        <input type="text" class="form-control" name="bank_account" id="bank_account">
+                                        <input type="text" class="form-control" name="bank_account" id="bank_account" readonly>
                                     </div>
                                 </label>
                             </div>
@@ -152,6 +156,7 @@
             </form>
 
         </div>
+        <script src = "../config/withdraw.js"></script>
         <!-- End block content -->
     </main>
 

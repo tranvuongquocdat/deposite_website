@@ -268,6 +268,50 @@ app.post('/contact', contact.none(), (req, res) => {
     });
 });
 
+app.post('/withdraw', (req, res) => {
+    const { username, password, value } = req.body;
+
+    con.query('SELECT pass FROM user WHERE user_name = ?', [username], (err, userResults) => {
+        if (err) {
+            return res.status(500).json({ message: "Lỗi server", error: err.message });
+        }
+        if (userResults.length === 0) {
+            return res.status(404).json({ message: "Tên người dùng không tồn tại" });
+        }
+
+        const user = userResults[0];
+        bcrypt.compare(password, user.pass, function(err, isMatch) {
+            if (err || !isMatch) {
+                return res.status(401).json({ message: "Sai mật khẩu" });
+            }
+
+            con.query('SELECT COALESCE(SUM(value), 0) AS balance FROM money WHERE user_name = ?', [username], (err, balanceResults) => {
+                if (err) {
+                    return res.status(500).json({ message: "Lỗi khi lấy số dư", error: err.message });
+                }
+
+                const currentBalance = balanceResults[0].balance;
+                if (value > currentBalance) {
+                    return res.status(400).json({ message: "Số dư không đủ để rút số tiền này" });
+                }
+
+                // Thực hiện giao dịch rút tiền
+                con.query('INSERT INTO ruttien (user_name, value) VALUES (?, ?)', [username, value], (err, insertResult) => {
+                    if (err) {
+                        return res.status(500).json({ message: "Lỗi khi thực hiện giao dịch rút tiền", error: err.message });
+                    }
+
+                    res.json({ 
+                        message: "Rút tiền thành công", 
+                        transactionId: insertResult.insertId, 
+                        balanceAfterWithdraw: currentBalance - value 
+                    });
+                });
+            });
+        });
+    });
+});
+
 
 // Endpoint to get the current balance of a user
 app.get('/balance', (req, res) => {
@@ -280,8 +324,8 @@ app.get('/balance', (req, res) => {
     // Replace 'deposit_table' and 'withdraw_table' with your actual table names
     const balanceSql = `
         SELECT 
-            (SELECT COALESCE(SUM(value), 0) FROM money WHERE email = (SELECT email FROM user WHERE user_name = ?)) AS total_deposit,
-            (SELECT COALESCE(SUM(value), 0) FROM withdraw_table WHERE user_id = (SELECT id FROM user WHERE user_name = ?)) AS total_withdraw
+            (SELECT COALESCE(SUM(value), 0) FROM money WHERE user_name = ?) AS total_deposit,
+            (SELECT COALESCE(SUM(value), 0) FROM ruttien WHERE user_name = ?) AS total_withdraw
     `;
 
     con.query(balanceSql, [username, username], (err, results) => {
@@ -295,6 +339,28 @@ app.get('/balance', (req, res) => {
             res.json({ balance });
         } else {
             res.status(404).json({ message: "User not found" });
+        }
+    });
+});
+
+app.get('/bank_info', (req, res) => {
+    const { username } = req.query;
+
+    if (!username) {
+        return res.status(400).json({ message: 'Username is required' });
+    }
+
+    const sql = "SELECT nguoi_nhan, bank_name, bank_account FROM user WHERE user_name = ?";
+    con.query(sql, [username], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Error fetching bank information", error: err.message });
+        }
+        if (results.length > 0) {
+            const { nguoi_nhan, bank_name, bank_account } = results[0];
+            res.json({ nguoi_nhan, bank_name, bank_account });  // Successfully return the bank details
+        } else {
+            res.status(404).json({ message: "User not found" });  // Handle no user found
         }
     });
 });
@@ -338,108 +404,6 @@ app.get('/user-info', (req, res) => {
         });
     });
 });
-
-app.post('/withdraw', (req, res) => {
-    const { username, password, value, kh_lydo, httt_ma, qr_url, nguoi_nhan, bank_name, bank_account } = req.body;
-
-    // Xác minh người dùng và mật khẩu
-    con.query('SELECT pass FROM user WHERE user_name = ?', [username], (err, userResults) => {
-        if (err) {
-            return res.status(500).json({ message: "Lỗi server", error: err.message });
-        }
-        if (userResults.length === 0) {
-            return res.status(404).json({ message: "Tên người dùng không tồn tại" });
-        }
-
-        const user = userResults[0];
-        bcrypt.compare(password, user.pass, function(err, isMatch) {
-            if (err) {
-                return res.status(500).json({ message: "Lỗi xác thực", error: err.message });
-            }
-            if (!isMatch) {
-                return res.status(401).json({ message: "Sai mật khẩu" });
-            }
-
-            // Tính số dư hiện có
-            con.query('SELECT (SELECT COALESCE(SUM(value), 0) FROM money WHERE user_name = ?) - (SELECT COALESCE(SUM(value), 0) FROM ruttien WHERE user_name = ?) AS balance', [username, username], (err, balanceResults) => {
-                if (err) {
-                    return res.status(500).json({ message: "Lỗi khi lấy số dư", error: err.message });
-                }
-
-                const currentBalance = balanceResults[0].balance;
-                if (value > currentBalance) {
-                    return res.status(400).json({ message: "Số dư không đủ để rút số tiền này" });
-                }
-
-                // Thực hiện giao dịch rút tiền
-                con.query('INSERT INTO ruttien (user_name, value, kh_lydo, httt_ma, qr_url, nguoi_nhan, bank_name, bank_account) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
-                    [username, value, kh_lydo, httt_ma, qr_url || null, nguoi_nhan || null, bank_name || null, bank_account || null], (err, insertResult) => {
-                        if (err) {
-                            return res.status(500).json({ message: "Lỗi khi thực hiện giao dịch rút tiền", error: err.message });
-                        }
-
-                        // Giao dịch rút tiền thành công
-                        res.json({ 
-                            message: "Rút tiền thành công", 
-                            transactionId: insertResult.insertId, 
-                            balanceAfterWithdraw: currentBalance - value 
-                        });
-                    }
-                );
-            });
-        });
-    });
-});
-
-app.post('/withdraw-all', (req, res) => {
-    const { username, password } = req.body;
-
-    // Đầu tiên xác minh người dùng dựa trên username và password
-    con.query('SELECT pass FROM user WHERE user_name = ?', [username], (err, userResults) => {
-        if (err) {
-            return res.status(500).json({ message: "Lỗi server", error: err.message });
-        }
-        if (userResults.length === 0) {
-            return res.status(404).json({ message: "Người dùng không tồn tại" });
-        }
-
-        const user = userResults[0];
-        bcrypt.compare(password, user.pass, function(err, isMatch) {
-            if (err || !isMatch) {
-                return res.status(401).json({ message: "Sai mật khẩu" });
-            }
-
-            // Tính số dư hiện có bằng cách lấy tổng value từ bảng 'money' và trừ đi tổng value từ bảng 'ruttien'
-            con.query('SELECT (SELECT COALESCE(SUM(value), 0) FROM money WHERE user_name = ?) - (SELECT COALESCE(SUM(value), 0) FROM ruttien WHERE user_name = ?) AS balance', [username, username], (err, results) => {
-                if (err) {
-                    return res.status(500).json({ message: "Lỗi khi lấy số dư", error: err.message });
-                }
-
-                const currentBalance = results[0].balance;
-                if (currentBalance <= 0) {
-                    return res.status(400).json({ message: "Không có đủ số dư để rút" });
-                }
-
-                // Thực hiện giao dịch rút tiền
-                con.query('INSERT INTO ruttien (user_name, value, kh_lydo, httt_ma, qr_url, nguoi_nhan, bank_name, bank_account) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
-                    [username, currentBalance, 'Thu hồi vốn', req.body.httt_ma, req.body.qr_url || null, req.body.nguoi_nhan || null, req.body.bank_name || null, req.body.bank_account || null], (err, insertResult) => {
-                        if (err) {
-                            return res.status(500).json({ message: "Lỗi khi thực hiện giao dịch rút tiền", error: err.message });
-                        }
-
-                        // Giao dịch rút tiền thành công
-                        res.json({ 
-                            message: "Thu hồi vốn thành công", 
-                            transactionId: insertResult.insertId, 
-                            balanceAfterWithdraw: 0 
-                        });
-                    }
-                );
-            });
-        });
-    });
-});
-
 
 // ... any other routes you have
 app.listen(port, () => {
