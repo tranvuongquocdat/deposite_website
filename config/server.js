@@ -148,44 +148,62 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-    const { login, password } = req.body; // Dùng `login` để đại diện cho username, email, hoặc phone
+    const { login, password } = req.body;
 
     if (!login || !password) {
         return res.status(400).json({ message: 'Login and password are required' });
     }
 
-    // Cập nhật câu truy vấn để kiểm tra username, email, hoặc phone
-    const sql = "SELECT * FROM user WHERE user_name = ? OR email = ? OR phone = ?";
-    con.query(sql, [login, login, login], (err, result) => {
+    // First check the admin table
+    const sqlAdmin = "SELECT * FROM admin WHERE user_name = ?";
+    con.query(sqlAdmin, [login], (err, adminResult) => {
         if (err) {
             console.error(err);
-            return res.status(500).json({ message: "Tài khoản không đúng", error: err.message });
+            return res.status(500).json({ message: "Internal server error", error: err.message });
         }
 
-        if (result.length > 0) {
-            const user = result[0];
-            // Tiếp tục so sánh mật khẩu như trước
-            // Đảm bảo bạn đã cài đặt và yêu cầu bcrypt: const bcrypt = require('bcrypt');
-            bcrypt.compare(password, user.pass, function(err, isMatch) {
+        if (adminResult.length > 0) {
+            const admin = adminResult[0];
+            if (password === admin.pass) {
+                delete admin.pass;
+                req.session.username = admin.user_name; // Assuming session setup
+                res.json({ message: "Admin login successful", user: admin, isAdmin: true });
+            } else {
+                res.status(401).json({ message: "Invalid username or password" });
+            }
+        } else {
+            // Check the user table if not found in admin
+            const sqlUser = "SELECT * FROM user WHERE user_name = ? OR email = ? OR phone = ?";
+            con.query(sqlUser, [login, login, login], (err, userResult) => {
                 if (err) {
                     console.error(err);
-                    return res.status(500).json({ message: "Sai mật khẩu", error: err.message });
+                    return res.status(500).json({ message: "Internal server error", error: err.message });
                 }
 
-                if (isMatch) {
-                    // Mật khẩu đúng, trả về thông tin người dùng (trừ mật khẩu)
-                    delete user.pass; // Xóa mật khẩu ra khỏi đối tượng trả về
-                    req.session.username = user.user_name;
-                    res.json({ message: "Đăng nhập thành công", user});
+                if (userResult.length > 0) {
+                    const user = userResult[0];
+                    bcrypt.compare(password, user.pass, function(err, isMatch) {
+                        if (err) {
+                            console.error(err);
+                            return res.status(500).json({ message: "Error verifying password", error: err.message });
+                        }
+
+                        if (isMatch) {
+                            delete user.pass;
+                            req.session.username = user.user_name;
+                            res.json({ message: "User login successful", user, isAdmin: false });
+                        } else {
+                            res.status(401).json({ message: "Invalid username or password" });
+                        }
+                    });
                 } else {
-                    res.status(401).json({ message: "Tài khoản hoặc mật khẩu không đúng" });
+                    res.status(401).json({ message: "Invalid username or password" });
                 }
             });
-        } else {
-            res.status(401).json({ message: "Tài khoản hoặc mật khẩu không đúng" });
         }
     });
 });
+
 
 
 app.post('/deposit', (req, res) => {
@@ -416,6 +434,83 @@ app.get('/user-info', (req, res) => {
         });
     });
 });
+
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+///ADMIN INFO SET UP////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+
+// Endpoint to get users with pagination
+app.get('/get-users', (req, res) => {
+    let page = req.query.page || 1;
+    const limit = 50;
+    const offset = (page - 1) * limit;
+
+    const countSql = 'SELECT COUNT(*) AS count FROM user';
+    con.query(countSql, (err, result) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ message: "Error fetching user count", error: err.message });
+        }
+        
+        const totalUsers = result[0].count;
+        const totalPages = Math.ceil(totalUsers / limit);
+
+        const sql = 'SELECT * FROM user LIMIT ? OFFSET ?';
+        con.query(sql, [limit, offset], (err, users) => {
+            if (err) {
+                console.error('Database error:', err);
+                return res.status(500).json({ message: "Error fetching users", error: err.message });
+            }
+            
+            res.json({ users, totalPages });
+        });
+    });
+});
+
+// Endpoint to handle form submissions for inquiries
+app.post('/admin_send', contact.none(), (req, res) => {
+    const { user_name, message } = req.body;
+
+    if (!user_name) {
+        return res.status(400).json({ message: 'Username error' });
+    }
+
+    // Verify the username exists
+    const sqlVerifyUser = "SELECT * FROM user WHERE user_name = ?";
+    con.query(sqlVerifyUser, [user_name], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Error checking user existence", error: err.message });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: "Username not found" });
+        }
+
+        // Save the inquiry message to the 'contact' table
+        const sqlInsertMessage = "INSERT INTO mail (user_name, message) VALUES (?, ?)";
+        con.query(sqlInsertMessage, [user_name, message], (insertErr, insertResult) => {
+            if (insertErr) {
+                console.error(insertErr);
+                return res.status(500).json({
+                    message: "Error saving message",
+                    error: insertErr.message
+                });
+            }
+
+            res.json({
+                message: "Inquiry submitted successfully",
+                result: insertResult
+            });
+        });
+    });
+});
+
 
 // ... any other routes you have
 app.listen(port, () => {
