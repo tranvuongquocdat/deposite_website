@@ -1,14 +1,6 @@
-var mysql = require('mysql');
+// config.js
+const config = {
+  host: 'localhost'
+};
 
-var con = mysql.createConnection({
-  host: "localhost",
-  port: 3636,
-  user: "root",
-  password: "",
-  database: "deposite_sql"
-});
-
-con.connect(function(err) {
-  if (err) throw err;
-  console.log("Connected!");
-});
+module.exports = config;

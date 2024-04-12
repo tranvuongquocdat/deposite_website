@@ -68,22 +68,16 @@
                     <img src="../assets/img/marketing/marketing-1.png">
                 </div>
                 <div class="col col-md-6">
-                    <form method="post" action="https://nentang.vn/">
+                    <form name="formInquiry" id="formInquiry" method="post" action="submit" enctype="multipart/form-data">
                         <div class="form-group">
-                            <label for="email">Email của bạn</label>
-                            <input type="email" class="form-control" id="email" name="email"
-                                placeholder="Email của bạn">
-                        </div>
-                        <div class="form-group">
-                            <label for="title">Tiêu đề của bạn</label>
-                            <input type="text" class="form-control" id="title" name="title"
-                                placeholder="Tiêu đề của bạn">
+                            <label for="user_name">Username của bạn</label>
+                            <input type="text" class="form-control" name="user_name" placeholder="Username của bạn">
                         </div>
                         <div class="form-group">
                             <label for="message">Lời nhắn của bạn</label>
-                            <textarea name="message" class="form-control"></textarea>
+                            <textarea style="height: 100px;" id="message" name="message" class="form-control"></textarea>
                         </div>
-                        <button class="btn btn-primary" name="btnGoiLoiNhan">Gửi lời nhắn</button>
+                        <button type="'submit" class="btn btn-primary">Gửi lời nhắn</button>
                     </form>
                 </div>
             </div>
@@ -95,6 +89,7 @@
                 </div>
             </div>
         </div>
+        <script src = "../config/contact.js"></script>
         <!-- End block content -->
     </main>
 

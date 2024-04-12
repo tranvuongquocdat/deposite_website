@@ -7,12 +7,13 @@ const app = express();
 const bcrypt = require('bcrypt');
 const cors = require('cors'); // Đảm bảo đã cài đặt package cors với npm install cors
 const session = require('express-session');
+const contact = multer();
 
-const host = '84.247.148.141';
+const host = 'localhost';
 const port = 3000;
 
 const con = mysql.createConnection({
-    host: "84.247.148.141",
+    host: host,
     port: 3306,
     user: "root",
     database: "deposite_sql"
@@ -74,7 +75,7 @@ app.post('/register', (req, res) => {
             return res.status(500).json({ message: "General uploading error", error: uploadErr.message });
         }
 
-        const { username, password, name, gender, address, phone, email, date, month, year, cmnd, kh_ma_moi} = req.body;
+        const { username, password, name, gender, address, phone, email, date, month, year, cmnd, kh_ma_moi, nguoi_nhan, bank_name, bank_account} = req.body;
         const cmndFrontUrl = req.files['cmnd_front'] ? req.files['cmnd_front'][0].path.replace(/\\/g, '/') : null;
         const cmndAfterUrl = req.files['cmnd_after'] ? req.files['cmnd_after'][0].path.replace(/\\/g, '/') : null;
 
@@ -105,8 +106,8 @@ app.post('/register', (req, res) => {
                     }
 
                     // Nếu không có lỗi, tiếp tục thực hiện việc đăng ký
-                    const sql = "INSERT INTO user (user_name, pass, name, gender, address, phone, email, date, month, year, cmnd, front_cmnd_url, after_cmnd_url, ma_moi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                    const values = [username, hash, name, gender, address, phone, email, date, month, year, cmnd, cmndFrontUrl, cmndAfterUrl, kh_ma_moi];
+                    const sql = "INSERT INTO user (user_name, pass, name, gender, address, phone, email, date, month, year, cmnd, front_cmnd_url, after_cmnd_url, ma_moi, nguoi_nhan, bank_name, bank_account) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    const values = [username, hash, name, gender, address, phone, email, date, month, year, cmnd, cmndFrontUrl, cmndAfterUrl, kh_ma_moi, nguoi_nhan, bank_name, bank_account];
                     con.query(sql, values, (err, result) => {
                         if (err) {
                             console.error(err);
@@ -228,6 +229,46 @@ app.post('/deposit', (req, res) => {
     });
 });
 
+// Endpoint to handle form submissions for inquiries
+app.post('/contact', contact.none(), (req, res) => {
+    const { user_name, message } = req.body;
+
+    if (!user_name) {
+        return res.status(400).json({ message: 'Username error' });
+    }
+
+    // Verify the username exists
+    const sqlVerifyUser = "SELECT * FROM user WHERE user_name = ?";
+    con.query(sqlVerifyUser, [user_name], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Error checking user existence", error: err.message });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: "Username not found" });
+        }
+
+        // Save the inquiry message to the 'contact' table
+        const sqlInsertMessage = "INSERT INTO contact (user_name, message) VALUES (?, ?)";
+        con.query(sqlInsertMessage, [user_name, message], (insertErr, insertResult) => {
+            if (insertErr) {
+                console.error(insertErr);
+                return res.status(500).json({
+                    message: "Error saving message",
+                    error: insertErr.message
+                });
+            }
+
+            res.json({
+                message: "Inquiry submitted successfully",
+                result: insertResult
+            });
+        });
+    });
+});
+
+
 // Endpoint to get the current balance of a user
 app.get('/balance', (req, res) => {
     const { username } = req.query;
@@ -276,7 +317,7 @@ app.get('/user-info', (req, res) => {
             return res.status(500).json({ message: "Error fetching balance", error: err.message });
         }
 
-        const userInfoSql = "SELECT user_name, name, gender, phone, email, address, front_cmnd_url, after_cmnd_url FROM user WHERE user_name = ?";
+        const userInfoSql = "SELECT user_name, name, gender, phone, email, address, front_cmnd_url, after_cmnd_url, nguoi_nhan, bank_name, bank_account FROM user WHERE user_name = ?";
         con.query(userInfoSql, [username], (err, userInfoResults) => {
             if (err) {
                 console.error(err);

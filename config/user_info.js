@@ -1,4 +1,5 @@
 // user_info.js
+const host = 'localhost';
 
 function displayUserInfo() {
     // Replace 'yourUsernameVariable' with how you're storing the logged-in username
@@ -10,7 +11,8 @@ function displayUserInfo() {
         return;
     }
 
-    fetch(`http://84.247.148.141:3000/user-info?username=${encodeURIComponent(username)}`, {
+
+    fetch(`http://${host}:3000/user-info?username=${encodeURIComponent(username)}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         // Không cần credentials: 'include' vì không sử dụng session trong trường hợp này
@@ -34,6 +36,9 @@ function displayUserInfo() {
             // Assume you have img elements for CMND images
             document.getElementById('front_cmnd').setAttribute('src', "../config/" + user.front_cmnd_url);
             document.getElementById('after_cmnd').setAttribute('src', "../config/" + user.after_cmnd_url);
+            document.getElementById('nguoi_nhan').textContent = user.nguoi_nhan;
+            document.getElementById('bank_name').textContent = user.bank_name;
+            document.getElementById('bank_account').textContent = user.bank_account;
         })
         .catch(error => {
             console.error('Failed to fetch user info:', error);
