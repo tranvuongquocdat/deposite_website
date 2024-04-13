@@ -59,11 +59,77 @@
     </nav>
     <!-- end header -->
     <main role="main">
+        <!-- Block content - Đục lỗ trên giao diện bố cục chung, đặt tên là `content` -->
+        <form name="frmupdate" id="frmupdate" method="post" enctype="multipart/form-data" action="#">
+            <div class="container mt-4">
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="card mx-4">
+                            <div class="card-body p-4">
+                                <h1>Cập nhật thông tin</h1>
+                                <p></p>
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fa fa-user"></i>
+                                        </span>
+                                    </div>
+                                    <input class="form-control" type="text" placeholder="Tên page"  name="page_name">
+                                </div>
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fa fa-user"></i>
+                                        </span>
+                                    </div>
+                                    <input class="form-control" type="text" placeholder="Số điện thoại" name="phone">
+                                </div>
+                                <h3>Thông tin ngân hàng</h3>
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fa fa-user"></i>
+                                        </span>
+                                    </div>
+                                    <input class="form-control" type="text" placeholder="Chủ tài khoản" name="nguoi_nhan" >
+                                </div>
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fa fa-user"></i>
+                                        </span>
+                                    </div>
+                                    <input class="form-control" type="text" placeholder="Tên ngân hàng" name="bank_name">
+                                </div>
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fa fa-user"></i>
+                                        </span>
+                                    </div>
+                                    <input class="form-control" type="text" placeholder="Số tài khoản" name="bank_account" >
+                                </div>  
 
-        
-
-        <!-- End block content -->
-    </main>
+                                <!-- <ul class="list-group mb-3">
+                                    <li class="list-group-item d-flex justify-content-between lh-condensed">
+                                        <div class="col-md-12">
+                                            <label for="cmnd_after">Ảnh QR code</label>
+                                            <input type="file" class="form-control-file" name="qr_code" id="qr_code">
+                                        </div>
+                                    </li>
+                                </ul> -->
+                                <button class="btn btn-block btn-success" name="submmitButton">Cập nhật</button>
+                            </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <script src = "../config/admin_update_page.js"></script>
+        </main>
 
     <!-- footer -->
     <hr class="featurette-divider">

@@ -62,51 +62,24 @@
     <main role="main">
         <!-- Block content - Đục lỗ trên giao diện bố cục chung, đặt tên là `content` -->
         <div class="container mt-4">
-            <div id="thongbao" class="alert alert-danger d-none face" role="alert">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
-            </div>
-
-            <h1 class="text-center">Hòm thư</h1>
-            <div class="row">
-                <div class="col col-md-12">
-                    <table class="table table-bordered">
-                        <thead>
-                            <thead>
-                            <tr>
-                                <th>STT</th>
-                                <th>Người gửi</th>
-                                <th>Nội dung</th>
-                                <th>Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody id="datarow">
-                            <tr>
-                                <td>1</td>
-                                <td>
-                                    <b>admin</b>
-                                </td>
-                                <td>Chào mừng bạn đến với quỹ đầu tư TÀI CHÍNH PHÁP LÝ CIC!!!</td>
-                                <td>
-                                    <!-- Nút xóa, bấm vào sẽ xóa thông tin dựa vào khóa chính `sp_ma` -->
-                                    <a id="delete_1" data-sp-ma="2" class="btn btn-danger btn-delete-sanpham">
-                                        <i class="fa fa-trash" aria-hidden="true"></i> Xóa
-                                    </a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <a href="../index.html" class="btn btn-warning btn-md"><i class="fa fa-arrow-left"
-                            aria-hidden="true"></i>&nbsp;Quay
-                        về trang chủ</a>
-                </div>
-            </div>
+          <h1 class="text-center">Hòm thư</h1>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Người gửi</th>
+                <th>Nội dung</th>
+                <th>Thời gian gửi</th>
+              </tr>
+            </thead>
+            <tbody id="datarow">
+              <!-- Dynamic content will go here -->
+            </tbody>
+          </table>
         </div>
         <!-- End block content -->
-    </main>
-
+      </main>
+      <script src="../config/mail.js"></script>
     <!-- footer -->
     <footer class="footer mt-auto py-3">
         <div class="container">

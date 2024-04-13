@@ -58,8 +58,13 @@ function attachFormSubmitEvent() {
             // console.log(document.getElementById('value').value);
             const value = parseInt(document.getElementById('value').value.replace(/[^0-9]/g, ''), 10);
             const balance = parseInt(document.getElementById('available_balance').value.replace(/[^0-9]/g, ''), 10);
-            const kh_lydo = document.getElementById('kh_lydo').value || 'Không có lý do';
-            console.log(kh_lydo);
+
+            var kh_lydo = "Không có lý do";
+            try{
+                const kh_lydo = document.getElementById('kh_lydo').value || 'Không có lý do';
+                console.log(kh_lydo);
+            }catch(e){
+            };
             // const httt_ma = document.getElementById('httt_ma').value || "1";
 
             if (value > balance) {

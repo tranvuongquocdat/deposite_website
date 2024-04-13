@@ -59,11 +59,26 @@
     </nav>
     <!-- end header -->
     <main role="main">
-
-        
-
+        <!-- Block content - Đục lỗ trên giao diện bố cục chung, đặt tên là `content` -->
+        <div class="container mt-4">
+          <h1 class="text-center">Hòm thư</h1>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Người gửi</th>
+                <th>Nội dung</th>
+                <th>Thời gian gửi</th>
+              </tr>
+            </thead>
+            <tbody id="datarow">
+              <!-- Dynamic content will go here -->
+            </tbody>
+          </table>
+        </div>
         <!-- End block content -->
-    </main>
+      </main>
+      <script src="../config/admin_mail_receive.js"></script>
 
     <!-- footer -->
     <hr class="featurette-divider">

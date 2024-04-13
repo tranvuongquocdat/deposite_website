@@ -66,6 +66,17 @@ const moneyStorage = multer.diskStorage({
 
 const uploadMoney = multer({ storage: moneyStorage }).single('kh_qr');
 
+const qrStorage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, 'uploads/qr_codes/'); // Make sure this folder exists or multer will throw an error
+    },
+    filename: function(req, file, cb) {
+        cb(null, 'qr_code-' + Date.now() + path.extname(file.originalname));
+    }
+});
+
+const uploadQR = multer({ storage: qrStorage }).single('qr_code');
+
 const upload_cmnd = multer({
     storage: storageInfoImages, // Use the new storage configuration
     limits: { fileSize: 20000000 }
@@ -435,6 +446,24 @@ app.get('/user-info', (req, res) => {
     });
 });
 
+app.get('/get-mails', (req, res) => {
+    const { username } = req.query;
+
+    if (!username) {
+        return res.status(400).json({ message: 'Username is required' });
+    }
+
+    const sql = "SELECT * FROM mail WHERE user_name = ? ORDER BY time DESC";
+    con.query(sql, [username], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Error fetching mails", error: err.message });
+        }
+        res.json({ mails: results });
+    });
+});
+
+
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -443,34 +472,6 @@ app.get('/user-info', (req, res) => {
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-
-// Endpoint to get users with pagination
-app.get('/get-users', (req, res) => {
-    let page = req.query.page || 1;
-    const limit = 50;
-    const offset = (page - 1) * limit;
-
-    const countSql = 'SELECT COUNT(*) AS count FROM user';
-    con.query(countSql, (err, result) => {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ message: "Error fetching user count", error: err.message });
-        }
-        
-        const totalUsers = result[0].count;
-        const totalPages = Math.ceil(totalUsers / limit);
-
-        const sql = 'SELECT * FROM user LIMIT ? OFFSET ?';
-        con.query(sql, [limit, offset], (err, users) => {
-            if (err) {
-                console.error('Database error:', err);
-                return res.status(500).json({ message: "Error fetching users", error: err.message });
-            }
-            
-            res.json({ users, totalPages });
-        });
-    });
-});
 
 // Endpoint to handle form submissions for inquiries
 app.post('/admin_send', contact.none(), (req, res) => {
@@ -511,6 +512,106 @@ app.post('/admin_send', contact.none(), (req, res) => {
     });
 });
 
+app.get('/admin-get-mails', (req, res) => {
+    const sql = "SELECT * FROM contact ORDER BY time DESC";
+    con.query(sql, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Error fetching mails", error: err.message });
+        }
+        res.json({ mails: results });
+    });
+});
+
+app.get('/get-deposits', (req, res) => {
+    const sql = "SELECT * FROM money"; // Replace 'deposit_table' with your actual table name
+    con.query(sql, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Error fetching deposits", error: err.message });
+        }
+        res.json({ deposits: results });
+    });
+});
+
+app.get('/get-withdrawals', (req, res) => {
+    const sql = `
+        SELECT r.time, r.ma_gd, r.user_name, r.value, r.kh_lydo, r.httt_ma, r.qr_url, 
+               u.nguoi_nhan, u.bank_name, u.bank_account
+        FROM ruttien r
+        INNER JOIN user u ON r.user_name = u.user_name
+        ORDER BY r.time DESC
+    `;
+
+    con.query(sql, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Error fetching withdrawals", error: err.message });
+        }
+        res.json({ withdrawals: results });
+    });
+});
+
+app.get('/get-users', (req, res) => {
+    const sql = `SELECT * FROM user`;
+
+    con.query(sql, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Error fetching users", error: err.message });
+        }
+        res.json({ users: results });
+    });
+});
+
+// Trong server.js
+app.post('/update-user/:userName', (req, res) => {
+    const { userName } = req.params;
+    const updatedData = req.body;
+    // Add this at the start of the route handler
+    console.log('Received data for update:', req.body);
+
+
+    // Loại bỏ các trường không cần thiết và kiểm tra giá trị của `dob` nếu cần thiết
+    const updates = [];
+    for (const key in updatedData) {
+          updates.push(`${key} = ${mysql.escape(updatedData[key])}`);
+    }
+    const sql = `UPDATE user SET ${updates.join(', ')} WHERE user_name = ${mysql.escape(userName)}`;
+
+    con.query(sql, (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ message: "Lỗi cập nhật người dùng", error: err.message });
+      }
+      res.json({ message: "Cập nhật người dùng thành công" });
+    });
+  });
+  
+// Endpoint to get page info
+app.get('/get-page-info', (req, res) => {
+    con.query("SELECT * FROM page LIMIT 1", (err, result) => {
+      if (err) {
+        return res.status(500).json({ message: "Error fetching page info", error: err.message });
+      }
+      res.json({ page: result[0] });
+    });
+  });
+  
+  // Endpoint to update page info
+  app.post('/update-page-info', uploadQR, (req, res) => {
+    const { page_name, phone, nguoi_nhan, bank_name, bank_account } = req.body;
+    const qr_link = req.file ? req.file.path.replace(/\\/g, '/') : ''; // Correct the slashes if on Windows
+    
+    const sql = "UPDATE page SET page_name = ?, phone = ?, nguoi_nhan = ?, bank_name = ?, bank_account = ?, qr_link = ? WHERE id = 1";
+    
+    con.query(sql, [page_name, phone, nguoi_nhan, bank_name, bank_account, qr_link], (err, result) => {
+      if (err) {
+        return res.status(500).json({ message: "Error updating page info", error: err.message });
+      }
+      res.json({ message: "Page info updated successfully", qr_link: qr_link });
+    });
+});
 
 // ... any other routes you have
 app.listen(port, () => {

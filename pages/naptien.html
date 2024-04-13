@@ -127,18 +127,22 @@
                         <h4 class="mb-3">Hình thức thanh toán</h4>
 
                         <div class="d-block my-3">
-                            <div class="custom-control custom-radio" style="margin-bottom: 20px;">
+                            <!-- <div class="custom-control custom-radio" style="margin-bottom: 20px;">
                                 <input id="httt-1" name="httt_ma" type="radio" class="custom-control-input" required="" value="1">
                                 <label class="custom-control-label" for="httt-1"><b>VN Pay</b></label>
                             </div>
                             <div style="text-align: center; margin-bottom: 50px;">
                                 <img src="../images/qr1.jpg" alt="VN Pay" style="width: 500px; height: 500px;">
-                            </div>
+                            </div> -->
                             
                             <div class="custom-control custom-radio">
                                 <input id="httt-2" name="httt_ma" type="radio" class="custom-control-input" required=""
                                     value="2">
                                 <label class="custom-control-label" for="httt-2"><b>Chuyển khoản Ngân hàng</b></label>
+                                <div id="nguoi_nhan">Chủ tài khoản: </div>
+                                <div id="bank_name">Ngân hàng: </div>
+                                <div id="bank_account">Số tài khoản: </div>
+                                
                             </div>
                             <!-- <div class="custom-control custom-radio">
                                 <input id="httt-3" name="httt_ma" type="radio" class="custom-control-input" required=""
@@ -152,6 +156,7 @@
                 </div>
             </form>
             <script src = "../config/naptien.js"></script>
+            <script src="../config/bankupdate.js"></script>
 
         </div>
         <!-- End block content -->

@@ -58,47 +58,93 @@
             </ul>
         </div>
     </nav>
+
+    <!-- Modal Edit User -->
+<!-- Modal HTML -->
+<div class="modal" tabindex="-1" role="dialog" id="editUserModal">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Chỉnh sửa thông tin người dùng</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="editUserForm">
+            <div class="form-group">
+                <label for="editFullName">Tên người dùng</label>
+                <input type="text" class="form-control" id="editUserName" readonly>
+              </div>
+            <div class="form-group">
+              <label for="editFullName">Họ và tên</label>
+              <input type="text" class="form-control" id="editFullName">
+            </div>
+            <div class="form-group">
+              <label for="editAddress">Địa chỉ</label>
+              <input type="text" class="form-control" id="editAddress">
+            </div>
+            <div class="form-group">
+              <label for="editPhone">Số điện thoại</label>
+              <input type="text" class="form-control" id="editPhone">
+            </div>
+            <div class="form-group">
+              <label for="editEmail">Email</label>
+              <input type="email" class="form-control" id="editEmail">
+            </div>
+            <div class="form-group">
+              <label for="editRecipient">Người nhận</label>
+              <input type="text" class="form-control" id="editRecipient">
+            </div>
+            <div class="form-group">
+              <label for="editBankName">Tên ngân hàng</label>
+              <input type="text" class="form-control" id="editBankName">
+            </div>
+            <div class="form-group">
+              <label for="editAccountNumber">Số tài khoản</label>
+              <input type="text" class="form-control" id="editAccountNumber">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="saveEditUser">Save changes</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
     <!-- end header -->
     <main role="main">
-
-        <h1>User Management</h1>
-        
-        <table id="userAccountTable">
+        <div class="container mt-4">
+          <h1 class="text-center">Quản lý thông tin người dùng</h1>
+          <table class="table table-bordered">
             <thead>
-                <tr>
-                    <th>User Name</th>
-                    <th>Password (hashed)</th>
-                    <th>Name</th>
-                    <th>Gender</th>
-                    <th>Address</th>
-                    <th>Phone</th>
-                    <th>Email</th>
-                    <th>Date</th>
-                    <th>Month</th>
-                    <th>Year</th>
-                    <th>CMND</th>
-                    <th>Front CMND URL</th>
-                    <th>After CMND URL</th>
-                    <th>Mã Mới</th>
-                    <th>Người Nhận</th>
-                    <th>Bank Name</th>
-                    <th>Bank Account</th>
-                    <th>Edit</th>
-                </tr>
+              <tr>
+                <th>STT</th>
+                <th>Tên người dùng</th>
+                <th>Họ và tên</th>
+                <th>Giới tính</th>
+                <th>Địa chỉ</th>
+                <th>Số điện thoại</th>
+                <th>Email</th>
+                <th>Ngày sinh</th>
+                <th>Người nhận</th>
+                <th>Tên ngân hàng</th>
+                <th>Số tài khoản</th>
+                <th>Ảnh CMND mặt trước</th>
+                <th>Ảnh CMND mặt sau</th>
+                <th>Hành động</th>
+              </tr>
             </thead>
-            <tbody>
-                <!-- Users will be loaded here -->
+            <tbody id="datarow">
+              <!-- Nội dung được tạo động -->
             </tbody>
-        </table>
-        
-        <div id="pagination">
-            <!-- Pagination buttons will be loaded here -->
+          </table>
         </div>
-        
-        <script src="../config/manage_user.js"></script>
-
-        <!-- End block content -->
-    </main>
+      </main>
+      <script src="config/admin_user_management.js"></script>
+      
 
     <!-- footer -->
     <hr class="featurette-divider">
