@@ -5,7 +5,7 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>TÀI CHÍNH PHÁP LÝ CIC - Đầu tư sinh lời</title>
+    <title class="pageName">TÀI CHÍNH PHÁP LÝ CIC - Đầu tư sinh lời</title>
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="../vendor/bootstrap/css/bootstrap.min.css" type="text/css">
@@ -17,41 +17,51 @@
 </head>
 
 <body>
+
     <!-- header -->
-    <nav class="navbar navbar-expand-md navbar-dark sticky-top bg-dark">
+    <nav class="navbar navbar-expand-md navbar-dark sticky-top bg-dark navbar-fixed-top">
         <div class="container">
             <div class="navbar-brand">
                 <img style="height: 40px; width: 40px; margin-bottom: 5px; margin-right: 5px;" src="../images/logo.png" alt="Logo">
-                TÀI CHÍNH PHÁP LÝ CIC
+                <a class="pageName">TÀI CHÍNH PHÁP LÝ CIC</a>
             </div>
+            <button class="navbar-toggler hidden-sm-up" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                aria-controls="navbar-header">
+                &#9776;
+            </button>
             <div class="navbar-collapse collapse" id="navbarCollapse">
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item active">
-                        <a class="nav-link" href="../index.html">Trang chủ </span></a>
+                <div class="navbar-collapse collapse" id="navbarCollapse">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="../index_login.html">Trang chủ <span class="sr-only">(current)</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="naptien.html">Nạp tiền</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="ruttien.html">Rút tiền</a>
+                        </li>
+                        <li class="nav-item active">
+                            <a class="nav-link" href="thuhoivon.html">Thu hồi vốn</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="contact.html">Liên hệ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="mail.html">Hộp thư</a>
+                        </li>
+                    </ul>
+                </div>
+                <ul class="navbar-nav px-3">
+                    <li class="nav-item text-nowrap">
+                        <a class="nav-link" href="user_info.html">Thông tin tài khoản</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="notlogin.html">Nạp tiền</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="notlogin.html">Rút tiền</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="notlogin.html">Thu hồi vốn</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="notlogin.html">Liên hệ</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="notlogin.html">Hộp thư</a>
+                    <li class="nav-item text-nowrap">
+                        <!-- Nếu chưa đăng nhập thì hiển thị nút Đăng nhập -->
+                        <a class="nav-link" href="../index.html">Đăng xuất</a>
                     </li>
                 </ul>
-            </div>
-            <ul class="navbar-nav px-3">
-                <li class="nav-item text-nowrap">
-                    <!-- Nếu chưa đăng nhập thì hiển thị nút Đăng nhập -->
-                    <a class="nav-link" href="login.html">Đăng nhập/ Đăng ký<span class="sr-only">(current)</a>
-                </li>
-            </ul>
+                </div>
         </div>
     </nav>
     <!-- end header -->

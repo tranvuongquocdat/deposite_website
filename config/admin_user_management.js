@@ -1,128 +1,115 @@
 host = "localhost";
-var editing_user_name = "";  // Biến để lưu trữ userName của người dùng đang được chỉnh sửa
+var editing_user_name = "";  // Variable to store the userName of the user being edited
+var editing_user_balance = 0; // Variable to store the current balance of the user being edited
 
 document.addEventListener('DOMContentLoaded', function() {
-  fetch(`http://${host}:3000/get-users`)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
-    })
-    .then(data => {
-      const tableBody = document.getElementById('datarow');
-      tableBody.innerHTML = '';
+    fetch(`http://${host}:3000/get-users`)
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById('datarow');
+            tableBody.innerHTML = '';
 
-      data.users.forEach((user, index) => {
-        const dob = `${user.date}/${user.month}/${user.year}`;
-        const row = tableBody.insertRow();
-    
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td data-key="user_name">${user.user_name}</td>
-            <td data-key="name">${user.name}</td>
-            <td data-key="gender">${user.gender === 1 ? 'Nam' : 'Nữ'}</td>
-            <td data-key="address">${user.address}</td>
-            <td data-key="phone">${user.phone}</td>
-            <td data-key="email">${user.email}</td>
-            <td data-key="dob">${dob}</td>
-            <td data-key="nguoi_nhan">${user.nguoi_nhan}</td>
-            <td data-key="bank_name">${user.bank_name}</td>
-            <td data-key="bank_account">${user.bank_account}</td>
-            <td>
-            <img src="config/${user.front_cmnd_url}" alt="CMND mặt trước" style="width:200px; height:120px;">
-            </td>
-            <td>
-                <img src="config/${user.after_cmnd_url}" alt="CMND mặt sau" style="width:200px; height:120px;">
-            </td>
-            <td>
-                <button class="btn btn-primary btn-edit" data-original-data='${JSON.stringify(user)}'>
-                    <i class="fa fa-edit"></i> Edit
-                </button>
-            </td>
-        `;
-    
-        row.querySelector('.btn-edit').addEventListener('click', function() {
-            var userData = JSON.parse(this.getAttribute('data-original-data'));
-            editing_user_name = userData.user_name;  // Cập nhật biến khi nhấn edit
-            showEditUserModal(userData, this);
-        });
-      });
-    })
-    .catch(error => console.error('Error:', error));
+            data.users.forEach((user, index) => {
+                fetchBalance(user.user_name, (balance) => {
+                    const dob = `${user.date}/${user.month}/${user.year}`;
+                    const row = tableBody.insertRow();
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${user.user_name}</td>
+                        <td>${user.name}</td>
+                        <td>${user.gender === 1 ? 'Nam' : 'Nữ'}</td>
+                        <td>${user.address}</td>
+                        <td>${user.phone}</td>
+                        <td>${user.email}</td>
+                        <td>${dob}</td>
+                        <td>${user.nguoi_nhan}</td>
+                        <td>${user.bank_name}</td>
+                        <td>${user.bank_account}</td>
+                        <td>${balance}</td>
+                        <td><img src="config/${user.front_cmnd_url}" alt="CMND mặt trước" style="width:100px; height:60px;"></td>
+                        <td><img src="config/${user.after_cmnd_url}" alt="CMND mặt sau" style="width:100px; height:60px;"></td>
+                        <td>
+                            <button class="btn btn-primary btn-edit" data-original-data='${JSON.stringify(user)}' data-balance='${balance}'>
+                                <i class="fa fa-edit"></i> Edit
+                            </button>
+                        </td>
+                    `;
+
+                    row.querySelector('.btn-edit').addEventListener('click', function() {
+                        var userData = JSON.parse(this.getAttribute('data-original-data'));
+                        editing_user_name = userData.user_name;
+                        editing_user_balance = balance;
+                        showEditUserModal(userData, balance);
+                    });
+                });
+            });
+        })
+        .catch(error => console.error('Error:', error));
 });
 
-function showEditUserModal(user, btn) {
-  const form = document.getElementById('editUserForm');
-  const fieldMapping = {
-    name: 'Họ và tên',
-    address: 'Địa chỉ',
-    phone: 'Số điện thoại',
-    email: 'Email',
-    nguoi_nhan: 'Người nhận',
-    bank_name: 'Tên ngân hàng',
-    bank_account: 'Số tài khoản'
-  };
+function fetchBalance(username, callback) {
+  fetch(`http://${host}:3000/balance?username=${encodeURIComponent(username)}`)
+      .then(response => response.json())
+      .then(data => {
+          // Parse the balance as an integer and format it with dot as thousands separator
+          const formattedBalance = parseInt(data.balance).toLocaleString('en-US');
+          callback(formattedBalance);
+      })
+      .catch(error => {
+          console.error('Error fetching balance:', error);
+          callback('Error');
+      });
+}
 
-  form.innerHTML = '';
+function showEditUserModal(user, currentBalance) {
+    const modal = $('#editUserModal');
+    modal.find('#editUserName').val(user.user_name);
+    modal.find('#editFullName').val(user.name);
+    modal.find('#editAddress').val(user.address);
+    modal.find('#editPhone').val(user.phone);
+    modal.find('#editEmail').val(user.email);
+    modal.find('#editRecipient').val(user.nguoi_nhan);
+    modal.find('#editBankName').val(user.bank_name);
+    modal.find('#editAccountNumber').val(user.bank_account);
+    modal.find('#editBalance').val(currentBalance);
 
-  Object.keys(fieldMapping).forEach((key) => {
-    const inputGroup = document.createElement('div');
-    inputGroup.className = 'form-group';
-
-    const label = document.createElement('label');
-    label.setAttribute('for', 'edit' + key.charAt(0).toUpperCase() + key.slice(1));
-    label.innerText = fieldMapping[key];
-
-    const input = document.createElement('input');
-    input.type = key === 'email' ? 'email' : 'text';
-    input.className = 'form-control';
-    input.id = 'edit' + key.charAt(0).toUpperCase() + key.slice(1);
-    input.value = user[key] || '';
-
-    inputGroup.appendChild(label);
-    inputGroup.appendChild(input);
-    form.appendChild(inputGroup);
-  });
-
-  $('#editUserModal').modal('show');
+    modal.modal('show');
 }
 
 document.getElementById('saveEditUser').addEventListener('click', function() {
-  const originalData = JSON.parse(document.querySelector('.btn-edit[data-original-data]').getAttribute('data-original-data'));
-  const updatedData = {};
+    const modal = $('#editUserModal');
+    const updatedData = {
+        name: modal.find('#editFullName').val(),
+        address: modal.find('#editAddress').val(),
+        phone: modal.find('#editPhone').val(),
+        email: modal.find('#editEmail').val(),
+        nguoi_nhan: modal.find('#editRecipient').val(),
+        bank_name: modal.find('#editBankName').val(),
+        bank_account: modal.find('#editAccountNumber').val(),
+        balance: modal.find('#editBalance').val()
+    };
 
-  Object.keys(originalData).forEach(key => {
-      const input = document.getElementById('edit' + key.charAt(0).toUpperCase() + key.slice(1));
-      if (input && input.value !== originalData[key] && input.value !== '') {
-          updatedData[key] = input.value;
-      }
-  });
+    console.log(updatedData);
 
-  if (Object.keys(updatedData).length > 0) {
-      fetch(`http://${host}:3000/update-user/${editing_user_name}`, {  // Sử dụng biến cục bộ
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(updatedData),
-      })
-      .then(response => {
-          if (!response.ok) throw new Error('Server response was not ok');
-          return response.json();
-      })
-      .then(data => {
-          console.log('Update response:', data);
-          alert('Cập nhật thông tin người dùng thành công');
-          location.reload(); // Reload the page to update the UI
-      })
-      .catch(error => {
-          console.error('Error:', error);
-          alert('Có lỗi xảy ra khi cập nhật thông tin người dùng');
-      });
-  } else {
-      alert('Không có thay đổi nào để cập nhật');
-  }
+    fetch(`http://${host}:3000/update-user/${editing_user_name}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
+    .then(data => {
+        alert('User information updated successfully');
+        location.reload(); // Reload the page to update the UI
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('There was an error updating the user information');
+    });
 
-  $('#editUserModal').modal('hide');
+    modal.modal('hide');
 });

@@ -562,10 +562,8 @@ app.post('/update-deposit-status', (req, res) => {
 
 app.get('/get-withdrawals', (req, res) => {
     const sql = `
-        SELECT r.time, r.ma_gd, r.user_name, r.value, r.kh_lydo, r.httt_ma, r.qr_url, r.transaction_check,
-               u.nguoi_nhan, u.bank_name, u.bank_account
+        SELECT r.time, r.ma_gd, r.user_name, r.value, r.kh_lydo, r.httt_ma, r.qr_url, r.transaction_check
         FROM ruttien r
-        INNER JOIN user u ON r.user_name = u.user_name
         ORDER BY r.time DESC
     `;
 
@@ -605,29 +603,75 @@ app.get('/get-users', (req, res) => {
     });
 });
 
-// Trong server.js
 app.post('/update-user/:userName', (req, res) => {
     const { userName } = req.params;
-    const updatedData = req.body;
-    // Add this at the start of the route handler
+    const { name, address, phone, email, nguoi_nhan, bank_name, bank_account, balance } = req.body;
     console.log('Received data for update:', req.body);
 
+    // Update user details
+    const updateUserSql = `
+        UPDATE user 
+        SET name = ?, address = ?, phone = ?, email = ?, nguoi_nhan = ?, bank_name = ?, bank_account = ? 
+        WHERE user_name = ?
+    `;
+    con.query(updateUserSql, [name, address, phone, email, nguoi_nhan, bank_name, bank_account, userName], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Error updating user", error: err.message });
+        }
+        
+        // Now, check for balance updates
+        if (balance !== undefined) {
+            const balanceSql = `
+                SELECT 
+                    (SELECT COALESCE(SUM(value), 0) FROM money WHERE user_name = ? AND transaction_check = 1) AS total_deposit,
+                    (SELECT COALESCE(SUM(value), 0) FROM ruttien WHERE user_name = ? AND transaction_check = 1) AS total_withdraw
+            `;
 
-    // Loại bỏ các trường không cần thiết và kiểm tra giá trị của `dob` nếu cần thiết
-    const updates = [];
-    for (const key in updatedData) {
-          updates.push(`${key} = ${mysql.escape(updatedData[key])}`);
-    }
-    const sql = `UPDATE user SET ${updates.join(', ')} WHERE user_name = ${mysql.escape(userName)}`;
+            con.query(balanceSql, [userName, userName], (balanceErr, balanceResults) => {
+                if (balanceErr) {
+                    console.error(balanceErr);
+                    return res.status(500).json({ message: "Error fetching balance", error: balanceErr.message });
+                }
 
-    con.query(sql, (err, result) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ message: "Lỗi cập nhật người dùng", error: err.message });
-      }
-      res.json({ message: "Cập nhật người dùng thành công" });
+                if (balanceResults.length > 0) {
+                    const { total_deposit, total_withdraw } = balanceResults[0];
+                    const currentBalance = total_deposit - total_withdraw;
+                    const balanceDifference = balance - currentBalance;
+
+                    if (balanceDifference !== 0) {
+                        let balanceUpdateSql;
+                        let values;
+
+                        if (balanceDifference > 0) {
+                            // Add difference to money table
+                            balanceUpdateSql = 'INSERT INTO money (user_name, value, transaction_check) VALUES (?, ?, 1)';
+                            values = [userName, balanceDifference];
+                        } else {
+                            // Add difference to ruttien table
+                            balanceUpdateSql = 'INSERT INTO ruttien (user_name, value, transaction_check) VALUES (?, ?, 1)';
+                            values = [userName, -balanceDifference];
+                        }
+
+                        con.query(balanceUpdateSql, values, (balanceUpdateErr, balanceUpdateResult) => {
+                            if (balanceUpdateErr) {
+                                console.error(balanceUpdateErr);
+                                return res.status(500).json({ message: "Error updating balance", error: balanceUpdateErr.message });
+                            }
+                            res.json({ message: "User and balance updated successfully" });
+                        });
+                    } else {
+                        res.json({ message: "User updated successfully, no balance change" });
+                    }
+                } else {
+                    res.status(404).json({ message: "User not found" });
+                }
+            });
+        } else {
+            res.json({ message: "User updated successfully" });
+        }
     });
-  });
+});
   
 // Endpoint to get page info
 app.get('/get-page-info', (req, res) => {
