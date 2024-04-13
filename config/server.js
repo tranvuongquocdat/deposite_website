@@ -312,6 +312,7 @@ app.post('/contact', contact.none(), (req, res) => {
 app.post('/withdraw', (req, res) => {
     const { username, password, value, kh_lydo } = req.body;
 
+    // Verify user existence and password
     con.query('SELECT pass FROM user WHERE user_name = ?', [username], (err, userResults) => {
         if (err) {
             return res.status(500).json({ message: "Lỗi server", error: err.message });
@@ -326,32 +327,45 @@ app.post('/withdraw', (req, res) => {
                 return res.status(401).json({ message: "Sai mật khẩu" });
             }
 
-            con.query('SELECT COALESCE(SUM(value), 0) AS balance FROM money WHERE user_name = ?', [username], (err, balanceResults) => {
+            // Fetch the total confirmed deposits
+            const depositSql = 'SELECT COALESCE(SUM(value), 0) AS total_deposit FROM money WHERE user_name = ? AND transaction_check = 1';
+            const withdrawSql = 'SELECT COALESCE(SUM(value), 0) AS total_withdraw FROM ruttien WHERE user_name = ? AND transaction_check = 1';
+
+            con.query(depositSql, [username], (err, depositResults) => {
                 if (err) {
-                    return res.status(500).json({ message: "Lỗi khi lấy số dư", error: err.message });
+                    return res.status(500).json({ message: "Error fetching deposits", error: err.message });
                 }
+                const total_deposit = depositResults[0].total_deposit;
 
-                const currentBalance = balanceResults[0].balance;
-                if (value > currentBalance) {
-                    return res.status(400).json({ message: "Số dư không đủ để rút số tiền này" });
-                }
-
-                // Thực hiện giao dịch rút tiền
-                con.query('INSERT INTO ruttien (user_name, value, kh_lydo) VALUES (?, ?, ?)', [username, value, kh_lydo], (err, insertResult) => {
+                con.query(withdrawSql, [username], (err, withdrawResults) => {
                     if (err) {
-                        return res.status(500).json({ message: "Lỗi khi thực hiện giao dịch rút tiền", error: err.message });
+                        return res.status(500).json({ message: "Error fetching withdrawals", error: err.message });
+                    }
+                    const total_withdraw = withdrawResults[0].total_withdraw;
+                    const currentBalance = total_deposit - total_withdraw;
+
+                    if (value > currentBalance) {
+                        return res.status(400).json({ message: "Số dư không đủ để rút số tiền này" });
                     }
 
-                    res.json({ 
-                        message: "Rút tiền thành công, giao dịch đang được xử lý!!!", 
-                        transactionId: insertResult.insertId, 
-                        balanceAfterWithdraw: currentBalance - value 
+                    // Perform the withdrawal transaction
+                    con.query('INSERT INTO ruttien (user_name, value, kh_lydo, transaction_check) VALUES (?, ?, ?, 0)', [username, value, kh_lydo], (err, insertResult) => {
+                        if (err) {
+                            return res.status(500).json({ message: "Lỗi khi thực hiện giao dịch rút tiền", error: err.message });
+                        }
+
+                        res.json({ 
+                            message: "Rút tiền thành công, giao dịch đang được xử lý!!!", 
+                            transactionId: insertResult.insertId, 
+                            balanceAfterWithdraw: currentBalance - value 
+                        });
                     });
                 });
             });
         });
     });
 });
+
 
 
 // Endpoint to get the current balance of a user
@@ -362,11 +376,11 @@ app.get('/balance', (req, res) => {
         return res.status(400).json({ message: 'Username is required' });
     }
 
-    // Replace 'deposit_table' and 'withdraw_table' with your actual table names
+    // Adjust the queries to check for transaction_check = 1 in both deposits and withdrawals
     const balanceSql = `
         SELECT 
-            (SELECT COALESCE(SUM(value), 0) FROM money WHERE user_name = ?) AS total_deposit,
-            (SELECT COALESCE(SUM(value), 0) FROM ruttien WHERE user_name = ?) AS total_withdraw
+            (SELECT COALESCE(SUM(value), 0) FROM money WHERE user_name = ? AND transaction_check = 1) AS total_deposit,
+            (SELECT COALESCE(SUM(value), 0) FROM ruttien WHERE user_name = ? AND transaction_check = 1) AS total_withdraw
     `;
 
     con.query(balanceSql, [username, username], (err, results) => {
@@ -383,7 +397,6 @@ app.get('/balance', (req, res) => {
         }
     });
 });
-
 app.get('/bank_info', (req, res) => {
     const { username } = req.query;
 
@@ -414,8 +427,8 @@ app.get('/user-info', (req, res) => {
 
     const balanceSql = `
         SELECT 
-            (SELECT COALESCE(SUM(value), 0) FROM money WHERE user_name = ?) AS total_deposit,
-            (SELECT COALESCE(SUM(value), 0) FROM ruttien WHERE user_name = ?) AS total_withdraw
+            (SELECT COALESCE(SUM(value), 0) FROM money WHERE user_name = ? AND transaction_check = 1) AS total_deposit,
+            (SELECT COALESCE(SUM(value), 0) FROM ruttien WHERE user_name = ? AND transaction_check = 1) AS total_withdraw
     `;
 
     con.query(balanceSql, [username, username], (err, balanceResults) => {
@@ -534,9 +547,22 @@ app.get('/get-deposits', (req, res) => {
     });
 });
 
+app.post('/update-deposit-status', (req, res) => {
+    const { ma_gd, newStatus } = req.body;
+    const sql = "UPDATE money SET transaction_check = ? WHERE ma_gd = ?";
+
+    con.query(sql, [newStatus, ma_gd], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Error updating deposit status", error: err.message });
+        }
+        res.json({ success: true, message: 'Deposit status updated successfully' });
+    });
+});
+
 app.get('/get-withdrawals', (req, res) => {
     const sql = `
-        SELECT r.time, r.ma_gd, r.user_name, r.value, r.kh_lydo, r.httt_ma, r.qr_url, 
+        SELECT r.time, r.ma_gd, r.user_name, r.value, r.kh_lydo, r.httt_ma, r.qr_url, r.transaction_check,
                u.nguoi_nhan, u.bank_name, u.bank_account
         FROM ruttien r
         INNER JOIN user u ON r.user_name = u.user_name
@@ -549,6 +575,21 @@ app.get('/get-withdrawals', (req, res) => {
             return res.status(500).json({ message: "Error fetching withdrawals", error: err.message });
         }
         res.json({ withdrawals: results });
+    });
+});
+
+app.post('/update-withdrawal-status', (req, res) => {
+    const { ma_gd, newStatus } = req.body;
+    const sql = `
+        UPDATE ruttien SET transaction_check = ? WHERE ma_gd = ?
+    `;
+
+    con.query(sql, [newStatus, ma_gd], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Error updating withdrawal status", error: err.message });
+        }
+        res.json({ success: true, message: 'Status updated successfully' });
     });
 });
 

@@ -1,41 +1,63 @@
 host = "localhost";
 
 document.addEventListener('DOMContentLoaded', function() {
-    fetch(`http://${host}:3000/get-deposits`) // Use a base URL variable for easier changes
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        const tableBody = document.getElementById('datarow');
-        tableBody.innerHTML = ''; // Clear the table body
+  fetch(`http://${host}:3000/get-deposits`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      const tableBody = document.getElementById('datarow');
+      tableBody.innerHTML = ''; // Clear the table body
 
-        // Check if there are any deposits
-        if (data.deposits.length === 0) {
-          tableBody.innerHTML = '<tr><td colspan="6">No deposits found.</td></tr>'; // Update colspan if you add more columns
-        }
+      if (data.deposits.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="6">No deposits found.</td></tr>';
+      }
 
-        // Loop through the deposits and append them to the table
-        data.deposits.forEach((deposit, index) => {
-          const row = tableBody.insertRow();
-          
-          // Use template literals for cleaner code
-          row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${deposit.user_name}</td>
-            <td>${deposit.value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</td>
-            <td>${deposit.httt_ma}</td>
-            <td>
-              <img src="${deposit.img_url ? `../config/${deposit.img_url}` : 'placeholder-image.png'}" alt="Deposit Image" style="width:300px;height:auto;">
-            </td>
-            <td>${deposit.ma_gd}</td>
-          `;
-        });
-      })
-      .catch(error => {
-        console.error('There has been a problem with your fetch operation:', error);
-        // Display error message to the user, maybe in a modal or a visible div
+      data.deposits.forEach((deposit, index) => {
+        const row = tableBody.insertRow();
+
+        row.innerHTML = `
+          <td>${deposit.ma_gd}</td>
+          <td>${deposit.user_name}</td>
+          <td>${deposit.value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</td>
+          <td>${deposit.httt_ma}</td>
+          <td>
+            <img src="${deposit.img_url ? `../config/${deposit.img_url}` : 'placeholder-image.png'}" alt="Deposit Image" style="width:300px;height:auto;">
+          </td>
+          <td>
+            ${deposit.transaction_check === 0 ? 
+              `<button style="color: red;" onclick="updateTransactionStatus('${deposit.ma_gd}', 1)">Xác nhận</button>` : 
+              `<button style="color: green;">Hoàn thành</button>`
+            }
+          </td>
+        `;
       });
+    })
+    .catch(error => {
+      console.error('There has been a problem with your fetch operation:', error);
+    });
 });
+
+function updateTransactionStatus(ma_gd, newStatus) {
+fetch(`http://${host}:3000/update-deposit-status`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ ma_gd, newStatus }),
+})
+.then(response => response.json())
+.then(data => {
+    if (data.success) {
+        window.location.reload(); // Reload the page to reflect the change
+    } else {
+        alert('Error updating status');
+    }
+})
+.catch(error => {
+    console.error('Error:', error);
+});
+}

@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert("Nạp tiền thành công, quay trở về trang chủ!");
+                alert("Nạp tiền thành công, giao dịch đang được xử lý!");
                 window.location.href = '../index_login.html'; // Redirect or handle the UI update accordingly
             } else {
                 throw new Error(data.message || 'Có lỗi xảy ra khi nạp tiền.');
