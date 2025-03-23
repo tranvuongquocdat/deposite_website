@@ -100,7 +100,7 @@ Deposite Website là một nền tảng quản lý giao dịch tài chính cho p
 5. Tải lên ảnh biên lai chuyển khoản
 6. Nhấp vào "Xác nhận" để gửi yêu cầu nạp tiền
 
-![Ảnh nạp tiền](./images/deposit.png)
+![Ảnh nạp tiền](/docs/images/deposit.png)
 
 ### Rút tiền
 1. Sau khi đăng nhập, truy cập mục "Rút tiền"
@@ -109,7 +109,7 @@ Deposite Website là một nền tảng quản lý giao dịch tài chính cho p
 4. Nhập lý do rút tiền (nếu cần)
 5. Nhấp vào "Xác nhận" để gửi yêu cầu rút tiền
 
-![Ảnh rút tiền](./images/withdraw.png)
+![Ảnh rút tiền](/docs/images/withdraw.png)
 
 ### Liên hệ với quản trị viên
 1. Sau khi đăng nhập, truy cập mục "Liên hệ"
