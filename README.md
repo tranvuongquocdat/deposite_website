@@ -83,14 +83,14 @@ Deposite Website là một nền tảng quản lý giao dịch tài chính cho p
    - Tải lên ảnh CMND/CCCD (mặt trước và mặt sau)
 3. Nhấp vào "Đăng ký" để hoàn tất
 
-![Ảnh đăng ký tài khoản](\docs\images\register.png)
+![Ảnh đăng ký tài khoản](/docs/images/register.png)
 
 ### Đăng nhập
 1. Truy cập trang chủ và nhấp vào "Đăng nhập"
 2. Nhập tên đăng nhập và mật khẩu
 3. Nhấp vào "Đăng nhập"
 
-![Ảnh đăng nhập](\docs\images\login.png)
+![Ảnh đăng nhập](/docs/images/login.png)
 
 ### Nạp tiền
 1. Sau khi đăng nhập, truy cập mục "Nạp tiền"
